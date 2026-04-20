@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ricerca: Dilemma del Prigioniero</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f5f0;
+  --bg-card: #ffffff;
+  --text: #1a1a18;
+  --text-muted: #6b6b65;
+  --text-hint: #9e9e96;
+  --border: rgba(26,26,24,0.12);
+  --border-strong: rgba(26,26,24,0.25);
+  --accent: #2d6a4f;
+  --accent-light: #e8f4ef;
+  --accent-mid: #52b788;
+  --danger: #c1440e;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 0;
+}
+
+.site-header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.site-logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+
+.progress-info {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.progress-track {
+  height: 2px;
+  background: var(--border);
+  position: sticky;
+  top: 57px;
+  z-index: 99;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent-mid);
+  transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
+}
+
+.main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 6rem;
+}
+
+.page { display: none; animation: fadeIn 0.3s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.section-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 4px 10px;
+  border-radius: 100px;
+  margin-bottom: 1rem;
+}
+
+.page-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 32px;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.page-desc {
+  font-size: 16px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.field { margin-bottom: 1.75rem; }
+.field-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+}
+
+select, input[type="number"], textarea {
+  width: 100%;
+  padding: 11px 14px;
+  font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  appearance: none;
+  transition: border-color 0.15s;
+}
+select:focus, input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent-mid);
+  box-shadow: 0 0 0 3px rgba(82,183,136,0.15);
+}
+textarea { min-height: 140px; resize: vertical; line-height: 1.7; }
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b65' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+/* POLITICAL COMPASS */
+.compass-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.compass-label-top {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.compass-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+.compass-label-side {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 60px;
+  text-align: center;
+}
+.compass-canvas-wrap {
+  position: relative;
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 280px;
+  margin: 0 auto;
+}
+#compassCanvas {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  border-radius: var(--radius-sm);
+  display: block;
+}
+.compass-label-bottom {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.compass-coords {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* LIKERT */
+.likert-group { display: flex; flex-direction: column; gap: 1.25rem; }
+.likert-item {}
+.likert-q { font-size: 15px; color: var(--text); margin-bottom: 10px; line-height: 1.5; }
+.likert-scale { display: flex; gap: 6px; }
+.likert-btn {
+  flex: 1;
+  padding: 9px 4px;
+  text-align: center;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  transition: all 0.15s;
+  font-weight: 400;
+}
+.likert-btn:hover { border-color: var(--accent-mid); color: var(--text); }
+.likert-btn.selected { background: var(--accent-light); border-color: var(--accent-mid); color: var(--accent); font-weight: 500; }
+.likert-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-hint); margin-top: 5px; }
+
+/* RADIO */
+.radio-group { display: flex; flex-direction: column; gap: 10px; }
+.radio-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.radio-opt:hover { border-color: var(--border-strong); background: #fafaf8; }
+.radio-opt.selected { border-color: var(--accent-mid); background: var(--accent-light); color: var(--accent); }
+.radio-dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.radio-opt.selected .radio-dot { border-color: var(--accent); background: var(--accent); }
+.radio-opt.selected .radio-dot::after { content: ''; width: 6px; height: 6px; background: #fff; border-radius: 50%; }
+
+/* SLIDER */
+.slider-wrap { margin-top: 0.5rem; }
+.slider-val { font-size: 28px; font-family: 'DM Serif Display', serif; color: var(--text); margin-bottom: 8px; }
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent-mid);
+  height: 4px;
+}
+.slider-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-hint); margin-top: 6px; }
+
+/* PAYOFF MATRIX */
+.payoff-explain {
+  background: #fffbf5;
+  border: 1px solid #e8d9c0;
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #7a6040;
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+}
+.payoff-explain strong { color: #5a4020; }
+
+.payoff-matrix {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 1.75rem;
+}
+.payoff-matrix table { width: 100%; border-collapse: collapse; }
+.payoff-matrix thead th {
+  padding: 10px 14px;
+  background: #f4f4f0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+}
+.payoff-matrix thead th:first-child { text-align: left; }
+.payoff-matrix tbody td {
+  padding: 13px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+  text-align: center;
+}
+.payoff-matrix tbody td:first-child {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: #f8f8f5;
+  text-align: left;
+}
+.payoff-matrix .highlight { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+
+/* SCENARIO BOX */
+.scenario-box {
+  background: #f9f7f4;
+  border-left: 3px solid var(--accent-mid);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 1rem 1.25rem;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.75;
+  margin-bottom: 1.75rem;
+}
+.scenario-box strong { color: var(--text); font-weight: 500; }
+
+/* CONFIDENCE */
+.confidence-section {
+  border-top: 1px solid var(--border);
+  padding-top: 1.25rem;
+  margin-top: 1.25rem;
+}
+.conf-label { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 0.5rem; }
+
+/* NAV */
+.nav {
+  display: flex;
+  gap: 10px;
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+.btn-next {
+  flex: 1;
+  padding: 14px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  letter-spacing: 0.01em;
+}
+.btn-next:hover { background: #245a42; }
+.btn-next:active { transform: scale(0.99); }
+.btn-back {
+  padding: 14px 20px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-back:hover { background: #f0f0ec; }
+
+.error-msg {
+  font-size: 13px;
+  color: var(--danger);
+  margin-top: 0.75rem;
+  display: none;
+  padding: 10px 14px;
+  background: #fdf0eb;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(193,68,14,0.2);
+}
+
+/* THANK YOU */
+.thank-circle {
+  width: 72px; height: 72px;
+  background: var(--accent-light);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+hr.divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+@media (max-width: 500px) {
+  .page-title { font-size: 26px; }
+  .main { padding: 2rem 1rem 5rem; }
+  .likert-btn { font-size: 13px; padding: 8px 2px; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-logo">Dilemma del Prigioniero</div>
+  <div class="progress-info" id="prog-info">Pagina 1 di 11</div>
+</header>
+<div class="progress-track"><div class="progress-fill" id="progress" style="width:9%"></div></div>
+
+<main class="main">
+
+  <!-- PAGE 1: INTRO -->
+  <div class="page active" id="page-1">
+    <div class="section-tag">Benvenuto/a</div>
+    <div class="page-title">Ricerca sul comportamento decisionale</div>
+    <div class="page-desc">Questo questionario è parte di una ricerca universitaria che studia come le persone si comportano di fronte a situazioni di scelta strategica. Non ci sono risposte giuste o sbagliate.<br><br>La compilazione richiede circa <strong>5 minuti</strong>. Tutti i dati sono raccolti in forma anonima.</div>
+    <div class="card" style="display:flex; gap:1rem; align-items:flex-start;">
+      <div style="font-size:22px; margin-top:2px;">🔒</div>
+      <div>
+        <div style="font-weight:500; margin-bottom:4px; font-size:15px;">Privacy garantita</div>
+        <div style="font-size:14px; color:var(--text-muted); line-height:1.6;">Nessun dato identificativo viene raccolto. Le risposte sono usate esclusivamente per fini statistici e accademici.</div>
+      </div>
+    </div>
+    <div class="nav" style="border-top:none; padding-top:0; margin-top:2rem;">
+      <button class="btn-next" onclick="goNext(1)">Inizia il questionario →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 2: DATI DEMOGRAFICI -->
+  <div class="page" id="page-2">
+    <div class="section-tag">Sezione 1 — Dati demografici</div>
+    <div class="page-title">Informazioni su di te</div>
+    <div class="page-desc">Poche domande per contestualizzare le risposte. Tutti i campi sono anonimi.</div>
+
+    <div class="field">
+      <label class="field-label">Età</label>
+      <input type="number" id="eta" min="15" max="99" placeholder="Es. 23">
+    </div>
+    <div class="field">
+      <label class="field-label">Genere</label>
+      <select id="genere">
+        <option value="">— Seleziona —</option>
+        <option>Uomo</option>
+        <option>Donna</option>
+        <option>Non binario</option>
+        <option>Preferisco non rispondere</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label">Livello di istruzione</label>
+      <select id="istruzione">
+        <option value="">— Seleziona —</option>
+        <option>Licenza media</option>
+        <option>Diploma di scuola superiore</option>
+        <option>Laurea triennale (in corso o conseguita)</option>
+        <option>Laurea magistrale (in corso o conseguita)</option>
+        <option>Dottorato o specializzazione</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label">Ambito di studi o professione</label>
+      <select id="ambito">
+        <option value="">— Seleziona —</option>
+        <option>Scientifico / STEM</option>
+        <option>Umanistico / artistico</option>
+        <option>Giuridico / economico</option>
+        <option>Sanitario / medico</option>
+        <option>Sociale / psicologico</option>
+        <option>Altro / non applicabile</option>
+      </select>
+    </div>
+
+    <hr class="divider">
+    <div class="field">
+      <label class="field-label">Orientamento politico</label>
+      <div style="font-size:14px; color:var(--text-muted); margin-bottom:1rem; line-height:1.6;">Clicca o trascina il punto nello spazio sottostante per indicare dove ti posizioni. L'asse orizzontale rappresenta la dimensione <em>economica</em> (sinistra / destra), quello verticale la dimensione <em>sociale</em> (autoritarismo / libertarismo).</div>
+      <div class="compass-wrap">
+        <div class="compass-label-top">Autoritarismo</div>
+        <div class="compass-row">
+          <div class="compass-label-side">Sinistra<br>economica</div>
+          <div class="compass-canvas-wrap">
+            <canvas id="compassCanvas" width="280" height="280"></canvas>
+          </div>
+          <div class="compass-label-side">Destra<br>economica</div>
+        </div>
+        <div class="compass-label-bottom">Libertarismo</div>
+        <div class="compass-coords" id="compass-coords">Posizione: non selezionata</div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-back" onclick="goBack(2)">← Indietro</button>
+      <button class="btn-next" onclick="goNext(2)">Avanti →</button>
+    </div>
+    <div class="error-msg" id="err-2">Per favore compila tutti i campi prima di continuare.</div>
+  </div>
+
+  <!-- PAGE 3: FIDUCIA -->
+  <div class="page" id="page-3">
+    <div class="section-tag">Sezione 2 — Scala psicologica</div>
+    <div class="page-title">Fiducia interpersonale</div>
+    <div class="page-desc">Indica quanto sei d'accordo con le seguenti affermazioni. (1 = per niente d'accordo, 5 = completamente d'accordo)</div>
+
+    <div class="likert-group">
+      <div class="likert-item" data-key="fid1">
+        <div class="likert-q">In generale, mi fido delle persone che non conosco.</div>
+        <div class="likert-scale">
+          <div class="likert-btn" onclick="selectLikert('fid1',1,this)">1</div>
+          <div class="likert-btn" onclick="selectLikert('fid1',2,this)">2</div>
+          <div class="likert-btn" onclick="selectLikert('fid1',3,this)">3</div>
+          <div class="likert-btn" onclick="selectLikert('fid1',4,this)">4</div>
+          <div class="likert-btn" onclick="selectLikert('fid1',5,this)">5</div>
+        </div>
+        <div class="likert-labels"><span>Per niente d'accordo</span><span>Completamente d'accordo</span></div>
+      </div>
+      <div class="likert-item" data-key="fid2">
+        <div class="likert-q">Credo che la maggior parte delle persone cerchi di essere onesta.</div>
+        <div class="likert-scale">
+          <div class="likert-btn" onclick="selectLikert('fid2',1,this)">1</div>
+          <div class="likert-btn" onclick="selectLikert('fid2',2,this)">2</div>
+          <div class="likert-btn" onclick="selectLikert('fid2',3,this)">3</div>
+          <div class="likert-btn" onclick="selectLikert('fid2',4,this)">4</div>
+          <div class="likert-btn" onclick="selectLikert('fid2',5,this)">5</div>
+        </div>
+        <div class="likert-labels"><span>Per niente d'accordo</span><span>Completamente d'accordo</span></div>
+      </div>
+      <div class="likert-item" data-key="fid3">
+        <div class="likert-q">Nella vita di tutti i giorni, fare affidamento sugli altri porta generalmente a risultati migliori che agire da soli.</div>
+        <div class="likert-scale">
+          <div class="likert-btn" onclick="selectLikert('fid3',1,this)">1</div>
+          <div class="likert-btn" onclick="selectLikert('fid3',2,this)">2</div>
+          <div class="likert-btn" onclick="selectLikert('fid3',3,this)">3</div>
+          <div class="likert-btn" onclick="selectLikert('fid3',4,this)">4</div>
+          <div class="likert-btn" onclick="selectLikert('fid3',5,this)">5</div>
+        </div>
+        <div class="likert-labels"><span>Per niente d'accordo</span><span>Completamente d'accordo</span></div>
+      </div>
+      <div class="likert-item" data-key="fid4">
+        <div class="likert-q">Alla fine, ognuno pensa principalmente a sé stesso: contare sulle proprie forze è più affidabile che sperare nell'aiuto altrui.</div>
+        <div class="likert-scale">
+          <div class="likert-btn" onclick="selectLikert('fid4',1,this)">1</div>
+          <div class="likert-btn" onclick="selectLikert('fid4',2,this)">2</div>
+          <div class="likert-btn" onclick="selectLikert('fid4',3,this)">3</div>
+          <div class="likert-btn" onclick="selectLikert('fid4',4,this)">4</div>
+          <div class="likert-btn" onclick="selectLikert('fid4',5,this)">5</div>
+        </div>
+        <div class="likert-labels"><span>Per niente d'accordo</span><span>Completamente d'accordo</span></div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-back" onclick="goBack(3)">← Indietro</button>
+      <button class="btn-next" onclick="goNext(3)">Avanti →</button>
+    </div>
+    <div class="error-msg" id="err-3">Per favore rispondi a tutte le domande.</div>
+  </div>
+
+  <!-- PAGE 4: RISCHIO -->
+  <div class="page" id="page-4">
+    <div class="section-tag">Sezione 2 — Scala psicologica</div>
+    <div class="page-title">Propensione al rischio</div>
+    <div class="page-desc">In generale, quanto sei disposto/a a correre rischi nella vita quotidiana?</div>
+
+    <div class="slider-wrap">
+      <div class="slider-val" id="risk-val">5</div>
+      <input type="range" min="0" max="10" step="1" value="5" id="rischio" oninput="document.getElementById('risk-val').textContent=this.value">
+      <div class="slider-labels"><span>0 — Per niente</span><span>10 — Moltissimo</span></div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-back" onclick="goBack(4)">← Indietro</button>
+      <button class="btn-next" onclick="goNext(4)">Avanti →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 5: BIG FIVE (ridotto) -->
+  <div class="page" id="page-5">
+    <div class="section-tag">Sezione 2 — Scala psicologica</div>
+    <div class="page-title">Tratti di personalità</div>
+    <div class="page-desc">Quanto le seguenti descrizioni si adattano a te? (1 = per niente, 5 = moltissimo)</div>
+
+    <div class="likert-group">
+      <div class="likert-item" data-key="b1">
+        <div class="likert-q">Mi descrivo come estroverso/a e socievole.</div>
+        <div class="likert-scale">
+          <div class="likert-btn" onclick="selectLikert('b1',1,this)">1</div>
+          <div class="likert-btn" onclick="selectLikert('b1',2,this)">2</div>
+          <div class="likert-btn" onclick="selectLikert('b1',3,this)">3</div>
+          <div class="likert-btn" onclick="selectLikert('b1',4,this)">4</div>
+          <div class="likert-btn" onclick="selectLikert('b1',5,this)">5</div>
+        </div>
+        <div class="likert-labels"><span>Per niente</span><span>Moltissimo</span></div>
+      </div>
+      <div class="likert-item" data-key="b2">
+        <div class="likert-q">Mi descrivo come riservato/a e tranquillo/a.</div>
+        <div class="likert-scale">
+          <div class="likert-btn" onclick="selectLikert('b2',1,this)">1</div>
+          <div class="likert-btn" onclick="selectLikert('b2',2,this)">2</div>
+          <div class="likert-btn" onclick="selectLikert('b2',3,this)">3</div>
+          <div class="likert-btn" onclick="selectLikert('b2',4,this)">4</div>
+          <div class="likert-btn" onclick="selectLikert('b2',5,this)">5</div>
+        </div>
+        <div class="likert-labels"><span>Per niente</span><span>Moltissimo</span></div>
+      </div>
+      <div class="likert-item" data-key="b3">
+        <div class="likert-q">Mi descrivo come disponibile e di buon carattere.</div>
+        <div class="likert-scale">
+          <div class="likert-btn" onclick="selectLikert('b3',1,this)">1</div>
+          <div class="likert-btn" onclick="selectLikert('b3',2,this)">2</div>
+          <div class="likert-btn" onclick="selectLikert('b3',3,this)">3</div>
+          <div class="likert-btn" onclick="selectLikert('b3',4,this)">4</div>
+          <div class="likert-btn" onclick="selectLikert('b3',5,this)">5</div>
+        </div>
+        <div class="likert-labels"><span>Per niente</span><span>Moltissimo</span></div>
+      </div>
+      <div class="likert-item" data-key="b4">
+        <div class="likert-q">Mi descrivo come tendenzialmente critico/a verso gli altri.</div>
+        <div class="likert-scale">
+          <div class="likert-btn" onclick="selectLikert('b4',1,this)">1</div>
+          <div class="likert-btn" onclick="selectLikert('b4',2,this)">2</div>
+          <div class="likert-btn" onclick="selectLikert('b4',3,this)">3</div>
+          <div class="likert-btn" onclick="selectLikert('b4',4,this)">4</div>
+          <div class="likert-btn" onclick="selectLikert('b4',5,this)">5</div>
+        </div>
+        <div class="likert-labels"><span>Per niente</span><span>Moltissimo</span></div>
+      </div>
+      <div class="likert-item" data-key="b5">
+        <div class="likert-q">Mi descrivo come affidabile e autodisciplinato/a.</div>
+        <div class="likert-scale">
+          <div class="likert-btn" onclick="selectLikert('b5',1,this)">1</div>
+          <div class="likert-btn" onclick="selectLikert('b5',2,this)">2</div>
+          <div class="likert-btn" onclick="selectLikert('b5',3,this)">3</div>
+          <div class="likert-btn" onclick="selectLikert('b5',4,this)">4</div>
+          <div class="likert-btn" onclick="selectLikert('b5',5,this)">5</div>
+        </div>
+        <div class="likert-labels"><span>Per niente</span><span>Moltissimo</span></div>
+      </div>
+      <div class="likert-item" data-key="b6">
+        <div class="likert-q">Mi descrivo come emotivamente stabile, difficilmente turbato/a.</div>
+        <div class="likert-scale">
+          <div class="likert-btn" onclick="selectLikert('b6',1,this)">1</div>
+          <div class="likert-btn" onclick="selectLikert('b6',2,this)">2</div>
+          <div class="likert-btn" onclick="selectLikert('b6',3,this)">3</div>
+          <div class="likert-btn" onclick="selectLikert('b6',4,this)">4</div>
+          <div class="likert-btn" onclick="selectLikert('b6',5,this)">5</div>
+        </div>
+        <div class="likert-labels"><span>Per niente</span><span>Moltissimo</span></div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-back" onclick="goBack(5)">← Indietro</button>
+      <button class="btn-next" onclick="goNext(5)">Avanti →</button>
+    </div>
+    <div class="error-msg" id="err-5">Per favore rispondi a tutte le domande.</div>
+  </div>
+
+  <!-- PAGE 6: DILEMMA ASTRATTO 1 — posta bassa -->
+  <div class="page" id="page-6">
+    <div class="section-tag">Sezione 3 — Scenario 1 di 4</div>
+    <div class="page-title">Dilemma astratto — posta bassa</div>
+    <div class="page-desc">Sei il Giocatore A. Non puoi comunicare con il Giocatore B, e nessuno dei due sa cosa sceglierà l'altro. Entrambi scegliete contemporaneamente se <strong>cooperare</strong> o <strong>tradire</strong>.</div>
+
+    <div class="payoff-explain">
+      <strong>Come leggere la tabella:</strong> Ogni cella mostra il risultato per te e per B in base alle scelte di entrambi. Ad esempio, se tu cooperi e B tradisce, tu ottieni 0 punti e B ne ottiene 5. I valori sono punti ipotetici — l'obiettivo è massimizzare il proprio guadagno.
+    </div>
+
+    <div class="payoff-matrix">
+      <table>
+        <thead>
+          <tr><th></th><th>B coopera</th><th>B tradisce</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Tu cooperi</td>
+            <td class="highlight">Tu +3 / B +3</td>
+            <td>Tu 0 / B +5</td>
+          </tr>
+          <tr>
+            <td>Tu tradisci</td>
+            <td>Tu +5 / B 0</td>
+            <td>Tu +1 / B +1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Cosa scegli?</label>
+      <div class="radio-group">
+        <label class="radio-opt" onclick="selectRadio('s1','coopera',this)">
+          <span class="radio-dot"></span>
+          <span><strong>Coopero</strong> — punta sulla fiducia reciproca</span>
+        </label>
+        <label class="radio-opt" onclick="selectRadio('s1','tradisce',this)">
+          <span class="radio-dot"></span>
+          <span><strong>Tradisco</strong> — massimizza il guadagno personale</span>
+        </label>
+      </div>
+    </div>
+    <div class="confidence-section">
+      <div class="conf-label">Quanto sei sicuro/a della scelta? <strong id="c1-v">50</strong>%</div>
+      <input type="range" min="0" max="100" step="1" value="50" oninput="document.getElementById('c1-v').textContent=this.value">
+      <div class="slider-labels"><span>0% — Per niente</span><span>100% — Certissimo/a</span></div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-back" onclick="goBack(6)">← Indietro</button>
+      <button class="btn-next" onclick="goNext(6)">Avanti →</button>
+    </div>
+    <div class="error-msg" id="err-6">Seleziona una risposta prima di continuare.</div>
+  </div>
+
+  <!-- PAGE 7: DILEMMA ASTRATTO 2 — posta media -->
+  <div class="page" id="page-7">
+    <div class="section-tag">Sezione 3 — Scenario 2 di 4</div>
+    <div class="page-title">Dilemma astratto — posta media</div>
+    <div class="page-desc">Stessa struttura dello scenario precedente, ma questa volta i valori in gioco sono più alti. Sei ancora il Giocatore A e non puoi comunicare con B.</div>
+
+    <div class="payoff-explain">
+      <strong>Come leggere la tabella:</strong> La logica è identica allo scenario 1, ma le differenze tra le scelte pesano di più. Cooperare insieme porta un buon risultato per entrambi, ma tradire l'altro può risultare molto più conveniente — se lui invece coopera.
+    </div>
+
+    <div class="payoff-matrix">
+      <table>
+        <thead>
+          <tr><th></th><th>B coopera</th><th>B tradisce</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Tu cooperi</td>
+            <td class="highlight">Tu +30 / B +30</td>
+            <td>Tu 0 / B +50</td>
+          </tr>
+          <tr>
+            <td>Tu tradisci</td>
+            <td>Tu +50 / B 0</td>
+            <td>Tu +10 / B +10</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Cosa scegli?</label>
+      <div class="radio-group">
+        <label class="radio-opt" onclick="selectRadio('s2','coopera',this)">
+          <span class="radio-dot"></span>
+          <span><strong>Coopero</strong></span>
+        </label>
+        <label class="radio-opt" onclick="selectRadio('s2','tradisce',this)">
+          <span class="radio-dot"></span>
+          <span><strong>Tradisco</strong></span>
+        </label>
+      </div>
+    </div>
+    <div class="confidence-section">
+      <div class="conf-label">Quanto sei sicuro/a della scelta? <strong id="c2-v">50</strong>%</div>
+      <input type="range" min="0" max="100" step="1" value="50" oninput="document.getElementById('c2-v').textContent=this.value">
+      <div class="slider-labels"><span>0% — Per niente</span><span>100% — Certissimo/a</span></div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-back" onclick="goBack(7)">← Indietro</button>
+      <button class="btn-next" onclick="goNext(7)">Avanti →</button>
+    </div>
+    <div class="error-msg" id="err-7">Seleziona una risposta prima di continuare.</div>
+  </div>
+
+  <!-- PAGE 8: DILEMMA ASTRATTO 3 — posta alta -->
+  <div class="page" id="page-8">
+    <div class="section-tag">Sezione 3 — Scenario 3 di 4</div>
+    <div class="page-title">Dilemma astratto — posta alta</div>
+    <div class="page-desc">Stesso gioco, ma ora le poste sono molto più elevate. Il divario tra cooperare e tradire si amplia notevolmente. Sei ancora il Giocatore A.</div>
+
+    <div class="payoff-explain">
+      <strong>Come leggere la tabella:</strong> I principi sono gli stessi degli scenari precedenti, ma i numeri sono molto più grandi. Tradire un cooperatore porta un vantaggio enorme; tuttavia, se entrambi tradite, il risultato è il peggiore possibile per la coppia. La pressione a tradire aumenta — ma anche il costo collettivo.
+    </div>
+
+    <div class="payoff-matrix">
+      <table>
+        <thead>
+          <tr><th></th><th>B coopera</th><th>B tradisce</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Tu cooperi</td>
+            <td class="highlight">Tu +300 / B +300</td>
+            <td>Tu 0 / B +500</td>
+          </tr>
+          <tr>
+            <td>Tu tradisci</td>
+            <td>Tu +500 / B 0</td>
+            <td>Tu +100 / B +100</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Cosa scegli?</label>
+      <div class="radio-group">
+        <label class="radio-opt" onclick="selectRadio('s3','coopera',this)">
+          <span class="radio-dot"></span>
+          <span><strong>Coopero</strong></span>
+        </label>
+        <label class="radio-opt" onclick="selectRadio('s3','tradisce',this)">
+          <span class="radio-dot"></span>
+          <span><strong>Tradisco</strong></span>
+        </label>
+      </div>
+    </div>
+    <div class="confidence-section">
+      <div class="conf-label">Quanto sei sicuro/a della scelta? <strong id="c3-v">50</strong>%</div>
+      <input type="range" min="0" max="100" step="1" value="50" oninput="document.getElementById('c3-v').textContent=this.value">
+      <div class="slider-labels"><span>0% — Per niente</span><span>100% — Certissimo/a</span></div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-back" onclick="goBack(8)">← Indietro</button>
+      <button class="btn-next" onclick="goNext(8)">Avanti →</button>
+    </div>
+    <div class="error-msg" id="err-8">Seleziona una risposta prima di continuare.</div>
+  </div>
+
+  <!-- PAGE 9: DILEMMA NARRATIVO 1 — carcere -->
+  <div class="page" id="page-9">
+    <div class="section-tag">Sezione 3 — Scenario 4 di 4</div>
+    <div class="page-title">Scenario narrativo — La confessione</div>
+
+    <div class="scenario-box">
+      <strong>Situazione:</strong> Tu e un complice siete stati fermati dalla polizia e interrogati in stanze separate. Non potete comunicare in nessun modo.<br><br>
+      — Se <strong>entrambi tacete</strong>: 1 anno di prigione a testa per un reato minore.<br>
+      — Se <strong>tu parli e lui tace</strong>: sei libero/a, lui prende 5 anni.<br>
+      — Se <strong>lui parla e tu taci</strong>: lui è libero, tu prendi 5 anni.<br>
+      — Se <strong>entrambi parlate</strong>: 3 anni di prigione a testa.
+    </div>
+
+    <div class="field">
+      <label class="field-label">Cosa fai?</label>
+      <div class="radio-group">
+        <label class="radio-opt" onclick="selectRadio('s4','tace',this)">
+          <span class="radio-dot"></span>
+          <span><strong>Taccio</strong> — accetto il rischio e mi fido del complice</span>
+        </label>
+        <label class="radio-opt" onclick="selectRadio('s4','parla',this)">
+          <span class="radio-dot"></span>
+          <span><strong>Parlo</strong> — cerco di tutelarmi rivelando tutto</span>
+        </label>
+      </div>
+    </div>
+    <div class="confidence-section">
+      <div class="conf-label">Quanto sei sicuro/a della scelta? <strong id="c4-v">50</strong>%</div>
+      <input type="range" min="0" max="100" step="1" value="50" oninput="document.getElementById('c4-v').textContent=this.value">
+      <div class="slider-labels"><span>0% — Per niente</span><span>100% — Certissimo/a</span></div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-back" onclick="goBack(9)">← Indietro</button>
+      <button class="btn-next" onclick="goNext(9)">Avanti →</button>
+    </div>
+    <div class="error-msg" id="err-9">Seleziona una risposta prima di continuare.</div>
+  </div>
+
+  <!-- PAGE 10: DOMANDA APERTA -->
+  <div class="page" id="page-10">
+    <div class="section-tag">Domanda aperta — facoltativa</div>
+    <div class="page-title">Una riflessione finale</div>
+    <div class="page-desc">C'è qualcosa che ha influenzato le tue scelte negli scenari precedenti? Hai ragionato in modo diverso a seconda del contesto (astratto vs narrativo, posta bassa vs alta)? Scrivi liberamente — non ci sono risposte giuste o sbagliate.</div>
+
+    <textarea id="riflessione" placeholder="Scrivi qui la tua riflessione..."></textarea>
+
+    <div class="nav">
+      <button class="btn-back" onclick="goBack(10)">← Indietro</button>
+      <button class="btn-next" onclick="goNext(10)">Concludi →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 11: CONCLUSIONE -->
+  <div class="page" id="page-11">
+    <div class="thank-circle">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="18" cy="18" r="17" stroke="#52b788" stroke-width="1.5"/>
+        <path d="M10 18.5L15.5 24L26 13" stroke="#2d6a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="page-title">Grazie per aver partecipato!</div>
+    <div class="page-desc" style="margin-top:1rem;">
+      Le tue risposte sono state registrate. Questo questionario fa parte di una ricerca universitaria sul comportamento individuale nei dilemmi sociali — la tua partecipazione contribuisce concretamente allo studio.<br><br>
+      I dati raccolti sono anonimi e trattati nel rispetto della privacy. Se hai curiosità sui risultati o vuoi saperne di più sulla teoria dei giochi e il dilemma del prigioniero, non esitare a contattare l'autore della ricerca.<br><br>
+      <em>Buona giornata!</em>
+    </div>
+    <div class="card" style="margin-top:2rem; background:#f0faf5; border-color:#a8dcc0;">
+      <div style="font-size:14px; color:var(--accent); font-weight:500; margin-bottom:6px;">Le tue scelte in sintesi</div>
+      <div id="summary" style="font-size:14px; color:var(--text-muted); line-height:2;"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const TOTAL = 11;
+const answers = {};
+let compassX = null, compassY = null;
+
+function updateProgress(n) {
+  document.getElementById('progress').style.width = Math.round((n / TOTAL) * 100) + '%';
+  document.getElementById('prog-info').textContent = 'Pagina ' + n + ' di ' + TOTAL;
+}
+
+function showPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + n).classList.add('active');
+  updateProgress(n);
+  window.scrollTo(0, 0);
+}
+
+function goBack(c) { showPage(c - 1); }
+
+function goNext(c) {
+  if (!validate(c)) return;
+  collectData(c);
+  if (c === 10) buildSummary();
+  showPage(c + 1);
+}
+
+function validate(p) {
+  const err = id => { const e = document.getElementById('err-'+id); if(e) e.style.display='flex'; };
+  const clearErr = id => { const e = document.getElementById('err-'+id); if(e) e.style.display='none'; };
+
+  if (p === 2) {
+    const eta = document.getElementById('eta').value;
+    const genere = document.getElementById('genere').value;
+    const istr = document.getElementById('istruzione').value;
+    const ambito = document.getElementById('ambito').value;
+    if (!eta || !genere || !istr || !ambito) { err(2); return false; }
+    clearErr(2); return true;
+  }
+  if (p === 3) {
+    const keys = ['fid1','fid2','fid3','fid4'];
+    for (let k of keys) { if (!answers[k]) { err(3); return false; } }
+    clearErr(3); return true;
+  }
+  if (p === 5) {
+    const keys = ['b1','b2','b3','b4','b5','b6'];
+    for (let k of keys) { if (!answers[k]) { err(5); return false; } }
+    clearErr(5); return true;
+  }
+  const radioPages = { 6:'s1', 7:'s2', 8:'s3', 9:'s4' };
+  if (radioPages[p]) {
+    if (!answers[radioPages[p]]) { err(p); return false; }
+    clearErr(p); return true;
+  }
+  return true;
+}
+
+function collectData(p) {
+  if (p === 2) {
+    answers.eta = document.getElementById('eta').value;
+    answers.genere = document.getElementById('genere').value;
+    answers.istruzione = document.getElementById('istruzione').value;
+    answers.ambito = document.getElementById('ambito').value;
+    answers.compass_x = compassX !== null ? compassX : '?';
+    answers.compass_y = compassY !== null ? compassY : '?';
+  }
+  if (p === 4) answers.rischio = document.getElementById('rischio').value;
+  if (p === 10) answers.riflessione = document.getElementById('riflessione').value;
+}
+
+function selectLikert(key, val, el) {
+  answers[key] = val;
+  const parent = el.closest('.likert-item');
+  parent.querySelectorAll('.likert-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  ['err-3','err-5'].forEach(id => { const e = document.getElementById(id); if(e) e.style.display='none'; });
+}
+
+function selectRadio(key, val, el) {
+  answers[key] = val;
+  const group = el.closest('.radio-group');
+  group.querySelectorAll('.radio-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  const map = { s1:'err-6', s2:'err-7', s3:'err-8', s4:'err-9' };
+  const e = document.getElementById(map[key]);
+  if (e) e.style.display = 'none';
+}
+
+function buildSummary() {
+  const choiceLabel = v => {
+    if (v === 'coopera' || v === 'tace' || v === 'si') return '🤝 Coopera';
+    if (v === 'tradisce' || v === 'parla' || v === 'no') return '⚡ Tradisce';
+    return v || '—';
+  };
+  const el = document.getElementById('summary');
+  el.innerHTML = `
+    Scenario 1 (bassa): <strong>${choiceLabel(answers.s1)}</strong><br>
+    Scenario 2 (media): <strong>${choiceLabel(answers.s2)}</strong><br>
+    Scenario 3 (alta): <strong>${choiceLabel(answers.s3)}</strong><br>
+    Scenario 4 (narrativo): <strong>${choiceLabel(answers.s4)}</strong>
+  `;
+}
+
+/* ---- POLITICAL COMPASS CANVAS ---- */
+function initCompass() {
+  const canvas = document.getElementById('compassCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const PAD = 10;
+
+  function draw(px, py) {
+    ctx.clearRect(0, 0, W, H);
+
+    // Quadrant fills
+    const colors = ['#fce8e8','#e8ecfc','#e8fce8','#fef9e7'];
+    ctx.fillStyle = colors[0]; ctx.fillRect(PAD, PAD, W/2-PAD, H/2-PAD);
+    ctx.fillStyle = colors[1]; ctx.fillRect(W/2, PAD, W/2-PAD, H/2-PAD);
+    ctx.fillStyle = colors[2]; ctx.fillRect(PAD, H/2, W/2-PAD, H/2-PAD);
+    ctx.fillStyle = colors[3]; ctx.fillRect(W/2, H/2, W/2-PAD, H/2-PAD);
+
+    // Axes
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(PAD, H/2); ctx.lineTo(W-PAD, H/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W/2, PAD); ctx.lineTo(W/2, H-PAD); ctx.stroke();
+
+    // Border
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(PAD, PAD, W-PAD*2, H-PAD*2);
+
+    // Marker
+    if (px !== null && py !== null) {
+      ctx.beginPath();
+      ctx.arc(px, py, 9, 0, Math.PI * 2);
+      ctx.fillStyle = '#2d6a4f';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(px, py, 13, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(45,106,79,0.35)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+
+  function getPos(e, rect) {
+    let clientX, clientY;
+    if (e.touches) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
+    else { clientX = e.clientX; clientY = e.clientY; }
+    return {
+      x: Math.max(PAD, Math.min(W-PAD, clientX - rect.left)),
+      y: Math.max(PAD, Math.min(H-PAD, clientY - rect.top))
+    };
+  }
+
+  function handleMove(e) {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const raw = getPos(e, rect);
+    const px = raw.x * scaleX;
+    const py = raw.y * scaleY;
+    compassX = ((px - W/2) / (W/2 - PAD)).toFixed(2);
+    compassY = (-(py - H/2) / (H/2 - PAD)).toFixed(2);
+    draw(px, py);
+    document.getElementById('compass-coords').textContent =
+      `Economica: ${compassX > 0 ? 'destra' : 'sinistra'} ${Math.abs(compassX)} · Sociale: ${compassY > 0 ? 'libertarismo' : 'autoritarismo'} ${Math.abs(compassY)}`;
+  }
+
+  let dragging = false;
+  canvas.addEventListener('mousedown', e => { dragging = true; handleMove(e); });
+  canvas.addEventListener('mousemove', e => { if (dragging) handleMove(e); });
+  canvas.addEventListener('mouseup', () => dragging = false);
+  canvas.addEventListener('mouseleave', () => dragging = false);
+  canvas.addEventListener('touchstart', handleMove, { passive: false });
+  canvas.addEventListener('touchmove', handleMove, { passive: false });
+
+  draw(null, null);
+}
+
+document.addEventListener('DOMContentLoaded', initCompass);
+updateProgress(1);
+</script>
+</body>
+</html>
