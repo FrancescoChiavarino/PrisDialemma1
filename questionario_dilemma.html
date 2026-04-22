@@ -991,6 +991,37 @@ function buildSummary() {
     Scenario 3 (alta): <strong>${choiceLabel(answers.s3)}</strong><br>
     Scenario 4 (narrativo): <strong>${choiceLabel(answers.s4)}</strong>
   `;
+  sendToSheets();
+}
+
+function sendToSheets() {
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlZ99fGJZZhfOIIiKGbH5PaJrantFS7bOYZj-gq7I_VAzbEwuRnQbvBsyRIdgL8hU9/exec';
+  const payload = {
+    eta: answers.eta,
+    genere: answers.genere,
+    istruzione: answers.istruzione,
+    ambito: answers.ambito,
+    compass_x: answers.compass_x,
+    compass_y: answers.compass_y,
+    fid1: answers.fid1,
+    fid2: answers.fid2,
+    fid3: answers.fid3,
+    fid4: answers.fid4,
+    rischio: answers.rischio,
+    b1: answers.b1, b2: answers.b2, b3: answers.b3,
+    b4: answers.b4, b5: answers.b5, b6: answers.b6,
+    s1: answers.s1, conf_s1: document.getElementById('c1-v').textContent,
+    s2: answers.s2, conf_s2: document.getElementById('c2-v').textContent,
+    s3: answers.s3, conf_s3: document.getElementById('c3-v').textContent,
+    s4: answers.s4, conf_s4: document.getElementById('c4-v').textContent,
+    riflessione: answers.riflessione || ''
+  };
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(err => console.warn('Invio dati fallito:', err));
 }
 
 /* ---- POLITICAL COMPASS CANVAS ---- */
